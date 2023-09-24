@@ -1,0 +1,17 @@
+# DISABLE
+:global "hotspot_enable" 0;
+:global "hotspot_gateway_is_set" 0;
+
+/interface wifiwave2
+set [ find default-name=wifi2 ] configuration=WiFiClients configuration.mode=ap
+
+/interface/bridge/port
+set [ find comment="for_hotspot" ] disabled=no
+
+/interface/list/member
+set [ find comment="for_hotspot" ] disabled=yes
+
+/ip/dhcp-client
+set [ find comment="for_hotspot" ] disabled=yes
+
+:log info message="Hotspot mode DISABLED. AP mode ENABLED!";
