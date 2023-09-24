@@ -1,0 +1,39 @@
+# ENABLE
+:global "hotspot_enable" 1;
+:global "hotspot_gateway_is_set" 0;
+:log info message="Enabling hotspot mode..."
+
+/interface wifiwave2
+set [ find default-name=wifi2 ] configuration=internet-from-mobile-hotspot configuration.mode=station
+
+/interface/bridge/port
+set [ find comment="for_hotspot" ] disabled=yes
+
+/interface/list/member
+set [ find comment="for_hotspot" ] disabled=no
+
+/ip/dhcp-client
+set [ find comment="for_hotspot" ] disabled=no
+
+:log info message="Setting route gateway..."
+:local "hotspot_gateway" [/ip dhcp-client get [find comment="for_hotspot"] gateway ];
+:local counter 0;
+
+:do {
+    :if ([:len $"hotspot_gateway"] = 0) do={
+        :set "hotspot_gateway" [/ip dhcp-client get [find comment="for_hotspot"] gateway ];
+        :set counter ($counter+1);
+        :log info message="Attempt number $counter..."
+        :delay 5;
+    } else={
+        /ip/route
+        set [ find comment="for_hotspot" ] gateway=[/ip dhcp-client get [find comment="for_hotspot"] gateway ]
+        :set "hotspot_gateway_is_set" 1;
+    }
+} while (( $"hotspot_gateway_is_set" = 0)&&( $counter < 12));
+
+:if ($"hotspot_gateway_is_set" = 1) do={
+    :log info message="Route gateway SUCCESS!";
+} else={
+    :log info message="Route gateway FAILED!";
+}
