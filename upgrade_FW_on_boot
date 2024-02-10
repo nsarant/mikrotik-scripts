@@ -1,0 +1,8 @@
+:delay 60s
+/system/routerboard
+:if ([get current-firmware] != [get upgrade-firmware]) do={
+  upgrade
+  /system/reboot
+} else={
+  :log info message="Firmware is already at latest version."
+}
